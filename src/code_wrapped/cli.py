@@ -20,6 +20,16 @@ from .parsers import (
 )
 from .parsers.base import AgentType, Session
 from .stats import WrappedStats, aggregate_stats
+from .enrichment import (
+    compute_archetype_profile,
+    compute_fingerprint,
+    detect_awards,
+    get_dominant_vibe,
+    get_fingerprint_ascii,
+    get_most_active_day_award,
+    get_peak_hour_award,
+    get_top_topics,
+)
 
 console = Console()
 
@@ -54,6 +64,8 @@ def collect_all_sessions(year: int, verbose: bool = False) -> list[Session]:
 
 def print_summary(stats: WrappedStats) -> None:
     """Print a summary of the wrapped stats to the console."""
+    sessions = stats.sessions
+
     # Header
     console.print()
     console.print(
@@ -96,6 +108,57 @@ def print_summary(stats: WrappedStats) -> None:
     console.print(table)
     console.print()
 
+    # === ENRICHMENT: Topics ===
+    if sessions:
+        top_topics = get_top_topics(sessions, limit=5)
+        if top_topics:
+            console.print("[bold]Your Top Topics:[/bold]")
+            for topic, count, pct in top_topics:
+                bar_len = int(pct / 5)  # Scale to ~20 chars max
+                bar = "█" * bar_len
+                console.print(f"  {topic}: [cyan]{bar}[/cyan] {pct:.1f}%")
+            console.print()
+
+    # === ENRICHMENT: Vibe ===
+    if sessions:
+        dominant_vibe = get_dominant_vibe(sessions)
+        if dominant_vibe:
+            name, emoji, pct = dominant_vibe
+            console.print(f"[bold]Your Vibe:[/bold] {emoji} {name} ({pct:.0f}% of sessions)")
+            console.print()
+
+    # === ENRICHMENT: Archetype ===
+    if sessions:
+        profile = compute_archetype_profile(sessions)
+        if profile:
+            console.print("[bold]Your Coding Archetype:[/bold]")
+            console.print(
+                f"  {profile.primary.emoji} [bold]{profile.primary.display_name}[/bold] "
+                f"({profile.primary.percentage:.0f}%)"
+            )
+            console.print(f"  [dim]{profile.primary.description}[/dim]")
+            if profile.secondary:
+                console.print(
+                    f"  Secondary: {profile.secondary.emoji} {profile.secondary.display_name} "
+                    f"({profile.secondary.percentage:.0f}%)"
+                )
+            console.print()
+
+    # === ENRICHMENT: Tool Fingerprint ===
+    if sessions:
+        fingerprint = compute_fingerprint(sessions)
+        if fingerprint:
+            console.print("[bold]Your Coding DNA:[/bold]")
+            console.print(f"  [bold cyan]{fingerprint.personality}[/bold cyan]")
+            console.print(f"  [dim]{fingerprint.personality_description}[/dim]")
+            console.print()
+            # Show top 5 tools as mini bars
+            for tool in fingerprint.top_tools[:5]:
+                bar_len = int(tool.percentage / 3)  # Scale
+                bar = "█" * bar_len + "░" * (20 - bar_len)
+                console.print(f"  {tool.name[:12]:12} [cyan]{bar}[/cyan] {tool.percentage:.1f}%")
+            console.print()
+
     # Top repos
     if stats.all_repos:
         console.print("[bold]Top Repositories:[/bold]")
@@ -103,11 +166,21 @@ def print_summary(stats: WrappedStats) -> None:
             console.print(f"  {repo}: {count} sessions")
         console.print()
 
-    # Top tools
-    if stats.all_tools:
-        console.print("[bold]Top Tools:[/bold]")
-        for tool, count in sorted(stats.all_tools.items(), key=lambda x: x[1], reverse=True)[:5]:
-            console.print(f"  {tool}: {count} uses")
+    # === ENRICHMENT: Awards ===
+    awards = detect_awards(stats)
+    # Add special awards
+    active_day_award = get_most_active_day_award(stats)
+    if active_day_award:
+        awards.append(active_day_award)
+    peak_hour_award = get_peak_hour_award(stats)
+    if peak_hour_award:
+        awards.append(peak_hour_award)
+
+    if awards:
+        console.print("[bold]Your Awards:[/bold]")
+        for award in awards[:8]:  # Limit to 8 awards
+            console.print(f"  {award.emoji} [bold]{award.name}[/bold]")
+            console.print(f"     [dim]{award.detail}[/dim]")
         console.print()
 
     # Fun facts

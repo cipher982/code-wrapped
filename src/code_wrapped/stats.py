@@ -9,6 +9,10 @@ from typing import Any
 
 from .parsers.base import AgentType, Session
 
+# Enrichment imports - deferred to avoid circular imports
+_enrichment_loaded = False
+_enrichment_modules: dict = {}
+
 
 @dataclass
 class AgentStats:
@@ -87,7 +91,7 @@ class WrappedStats:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        return {
+        result = {
             "year": self.year,
             "generated_at": self.generated_at.isoformat(),
             "summary": {
@@ -131,6 +135,100 @@ class WrappedStats:
                 "peak_hour": self.peak_hour,
             },
         }
+
+        # Add enrichment data if sessions available
+        if self.sessions:
+            result["enrichment"] = self._compute_enrichment()
+
+        return result
+
+    def _compute_enrichment(self) -> dict[str, Any]:
+        """Compute enrichment data for JSON output."""
+        # Lazy import to avoid circular dependencies
+        from .enrichment import (
+            compute_archetype_profile,
+            compute_fingerprint,
+            detect_awards,
+            get_dominant_vibe,
+            get_most_active_day_award,
+            get_peak_hour_award,
+            get_top_topics,
+        )
+
+        enrichment: dict[str, Any] = {}
+
+        # Topics
+        top_topics = get_top_topics(self.sessions, limit=5)
+        if top_topics:
+            enrichment["topics"] = [
+                {"name": name, "count": count, "percentage": round(pct, 1)}
+                for name, count, pct in top_topics
+            ]
+
+        # Vibe
+        dominant_vibe = get_dominant_vibe(self.sessions)
+        if dominant_vibe:
+            name, emoji, pct = dominant_vibe
+            enrichment["vibe"] = {
+                "name": name,
+                "emoji": emoji,
+                "percentage": round(pct, 1),
+            }
+
+        # Archetype
+        profile = compute_archetype_profile(self.sessions)
+        if profile:
+            enrichment["archetype"] = {
+                "primary": {
+                    "name": profile.primary.display_name,
+                    "emoji": profile.primary.emoji,
+                    "percentage": round(profile.primary.percentage, 1),
+                    "description": profile.primary.description,
+                },
+                "all": [
+                    {
+                        "name": s.display_name,
+                        "emoji": s.emoji,
+                        "percentage": round(s.percentage, 1),
+                    }
+                    for s in profile.all_scores
+                ],
+            }
+
+        # Fingerprint
+        fingerprint = compute_fingerprint(self.sessions)
+        if fingerprint:
+            enrichment["fingerprint"] = {
+                "personality": fingerprint.personality,
+                "description": fingerprint.personality_description,
+                "top_tools": [
+                    {"name": t.name, "count": t.count, "percentage": round(t.percentage, 1)}
+                    for t in fingerprint.top_tools[:10]
+                ],
+            }
+
+        # Awards
+        awards = detect_awards(self)
+        active_day = get_most_active_day_award(self)
+        if active_day:
+            awards.append(active_day)
+        peak_hour = get_peak_hour_award(self)
+        if peak_hour:
+            awards.append(peak_hour)
+
+        if awards:
+            enrichment["awards"] = [
+                {
+                    "id": a.id,
+                    "name": a.name,
+                    "emoji": a.emoji,
+                    "description": a.description,
+                    "detail": a.detail,
+                }
+                for a in awards
+            ]
+
+        return enrichment
 
 
 def compute_streaks(daily_sessions: dict[str, int]) -> tuple[int, int, int]:
