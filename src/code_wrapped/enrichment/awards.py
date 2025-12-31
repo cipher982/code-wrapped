@@ -13,81 +13,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..stats import WrappedStats
 
-# Award definitions
-AWARD_DEFINITIONS: dict[str, dict] = {
-    "night_owl": {
-        "name": "Night Owl",
-        "emoji": "🦉",
-        "description": "Peak coding after midnight",
-        "criteria": "Most sessions between 11pm-4am",
-    },
-    "early_bird": {
-        "name": "Early Bird",
-        "emoji": "🐦",
-        "description": "Gets the worm before dawn",
-        "criteria": "Most sessions between 5am-8am",
-    },
-    "bug_slayer": {
-        "name": "Bug Slayer",
-        "emoji": "🗡️",
-        "description": "Hunted down bugs relentlessly",
-        "criteria": "High ratio of debugging sessions",
-    },
-    "marathon_coder": {
-        "name": "Marathon Coder",
-        "emoji": "🏃",
-        "description": "Your longest session was epic",
-        "criteria": "Longest single session > 3 hours",
-    },
-    "speed_demon": {
-        "name": "Speed Demon",
-        "emoji": "⚡",
-        "description": "Fast, focused sessions",
-        "criteria": "Average session < 15 minutes with high output",
-    },
-    "streak_master": {
-        "name": "Streak Master",
-        "emoji": "🔥",
-        "description": "Consistency is your superpower",
-        "criteria": "Coding streak > 30 days",
-    },
-    "repo_hopper": {
-        "name": "Repo Hopper",
-        "emoji": "🐰",
-        "description": "You bounced between many projects",
-        "criteria": "Worked on 10+ repos",
-    },
-    "deep_diver": {
-        "name": "Deep Diver",
-        "emoji": "🤿",
-        "description": "Your conversations go deep",
-        "criteria": "Average turns per session > 50",
-    },
-    "ai_whisperer": {
-        "name": "AI Whisperer",
-        "emoji": "🧙",
-        "description": "You get the most out of AI",
-        "criteria": "High tokens per session",
-    },
-    "polyglot": {
-        "name": "Polyglot",
-        "emoji": "🌍",
-        "description": "Master of multiple agents",
-        "criteria": "Used 3+ different AI agents",
-    },
-    "weekend_warrior": {
-        "name": "Weekend Warrior",
-        "emoji": "⚔️",
-        "description": "Weekends are for coding",
-        "criteria": "High weekend coding ratio",
-    },
-    "terminal_master": {
-        "name": "Terminal Master",
-        "emoji": "💻",
-        "description": "Command line is your home",
-        "criteria": "Bash tool usage > 50%",
-    },
-}
+# Award types are documented inline in detect_awards() function
+# 12 award types: night_owl, early_bird, bug_slayer, marathon_coder, speed_demon,
+# streak_master, repo_hopper, deep_diver, ai_whisperer, polyglot, weekend_warrior, terminal_master
 
 
 @dataclass
@@ -276,6 +204,48 @@ def detect_awards(stats: WrappedStats) -> list[Award]:
                 value=bash_count / total_tools,
             )
         )
+
+    # Bug Slayer: High ratio of debugging sessions (based on vibe detection)
+    if stats.sessions:
+        from .vibes import detect_session_vibe
+
+        debugging_sessions = 0
+        for session in stats.sessions:
+            vibe = detect_session_vibe(session)
+            if vibe and vibe.vibe == "debugging_hell":
+                debugging_sessions += 1
+
+        if total_sessions > 10 and debugging_sessions / total_sessions > 0.25:
+            awards.append(
+                Award(
+                    id="bug_slayer",
+                    name="Bug Slayer",
+                    emoji="🗡️",
+                    description="Hunted down bugs relentlessly",
+                    detail=f"{debugging_sessions} debugging sessions ({debugging_sessions * 100 // total_sessions}%)",
+                    value=debugging_sessions,
+                )
+            )
+
+    # Speed Demon: Many fast, productive sessions
+    if stats.sessions:
+        fast_sessions = 0
+        for session in stats.sessions:
+            # Fast = under 15 minutes but at least 5 turns (not trivial)
+            if session.duration_minutes < 15 and session.turn_count >= 5:
+                fast_sessions += 1
+
+        if total_sessions > 20 and fast_sessions / total_sessions > 0.3:
+            awards.append(
+                Award(
+                    id="speed_demon",
+                    name="Speed Demon",
+                    emoji="⚡",
+                    description="Fast, focused sessions",
+                    detail=f"{fast_sessions} sessions under 15 minutes ({fast_sessions * 100 // total_sessions}%)",
+                    value=fast_sessions,
+                )
+            )
 
     return awards
 

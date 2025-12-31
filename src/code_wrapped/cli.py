@@ -25,7 +25,6 @@ from .enrichment import (
     compute_fingerprint,
     detect_awards,
     get_dominant_vibe,
-    get_fingerprint_ascii,
     get_most_active_day_award,
     get_peak_hour_award,
     get_top_topics,

@@ -9,10 +9,6 @@ from typing import Any
 
 from .parsers.base import AgentType, Session
 
-# Enrichment imports - deferred to avoid circular imports
-_enrichment_loaded = False
-_enrichment_modules: dict = {}
-
 
 @dataclass
 class AgentStats:
