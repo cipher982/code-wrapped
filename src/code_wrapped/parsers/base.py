@@ -89,10 +89,12 @@ def extract_repo_from_path(cwd: str | None) -> str | None:
     """Extract sanitized repo name from working directory path.
 
     Privacy: Only returns the repo name, not the full path.
+    For nested repos, returns the full path under the git directory.
 
     Examples:
         /Users/dave/git/my-project -> my-project
-        /Users/dave/git/work/secret-repo -> secret-repo
+        /Users/dave/git/work/secret-repo -> work/secret-repo
+        /Users/dave/git/me/mytech -> me/mytech
         /home/user/projects/foo -> foo
     """
     if not cwd:
@@ -109,8 +111,10 @@ def extract_repo_from_path(cwd: str | None) -> str | None:
     for git_dir in ("git", "projects", "repos", "src", "code"):
         if git_dir in parts:
             idx = parts.index(git_dir)
+            # Return all parts after the git directory as the repo path
             if idx + 1 < len(parts):
-                return parts[idx + 1]
+                remaining = parts[idx + 1 :]
+                return "/".join(remaining)
 
     # Fallback: use last directory name
     return path.name if path.name else None

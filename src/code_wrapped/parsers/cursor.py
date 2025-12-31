@@ -94,8 +94,8 @@ def parse_cursor_sessions(
                     assistant_message_count=turn_count // 2,
                     # Cursor doesn't track per-repo like Claude/Codex
                     repo=None,
-                    # Store mode in topic for now
-                    topic=mode if mode != "unknown" else None,
+                    # Store mode in tools_used for Cursor-specific tracking
+                    tools_used={"cursor_mode": 1} if mode and mode != "unknown" else {},
                 )
 
             except (json.JSONDecodeError, KeyError, ValueError):

@@ -57,24 +57,83 @@ def extract_user_prompts_codex(messages: list[dict]) -> list[str]:
 
 
 def parse_codex_session_file(session_file: Path) -> Session | None:
-    """Parse a single Codex session file into a Session object."""
+    """Parse a single Codex session file into a Session object.
+
+    Handles two formats:
+    1. Old format (*.json): {"session": {...}, "items": [...]}
+    2. New format (*.jsonl): Line-delimited JSON with session_meta and response_item
+    """
     try:
         # Codex can be .json or .jsonl
         if session_file.suffix == ".json":
             with open(session_file) as f:
                 data = json.load(f)
-                if isinstance(data, list):
-                    messages = data
-                else:
-                    messages = [data]
+
+            # Handle old format: {"session": {...}, "items": [...]}
+            if isinstance(data, dict) and "session" in data:
+                session_data = data.get("session", {})
+                items = data.get("items", [])
+
+                session_id = session_data.get("id")
+                timestamp_str = session_data.get("timestamp")
+                cwd = session_data.get("cwd")
+
+                if not timestamp_str:
+                    return None
+
+                started_at = parse_iso_timestamp(timestamp_str)
+                if not started_at:
+                    return None
+
+                # Count user/assistant messages from items
+                user_count = sum(1 for item in items if item.get("role") == "user")
+                assistant_count = sum(1 for item in items if item.get("role") == "assistant")
+
+                # Extract tool uses from items
+                tools: dict[str, int] = defaultdict(int)
+                for item in items:
+                    if item.get("type") == "function_call":
+                        tool_name = item.get("name", "unknown")
+                        tools[tool_name] += 1
+
+                # Extract user prompts
+                prompts: list[str] = []
+                for item in items:
+                    if item.get("role") == "user":
+                        content = item.get("content", [])
+                        if isinstance(content, list):
+                            for c in content:
+                                if isinstance(c, dict) and c.get("type") == "input_text":
+                                    text = c.get("text", "")
+                                    if text:
+                                        prompts.append(sanitize_prompt(text))
+
+                return Session(
+                    id=session_id or session_file.stem,
+                    agent=AgentType.CODEX,
+                    started_at=started_at,
+                    repo=extract_repo_from_path(cwd),
+                    turn_count=len(items),
+                    user_message_count=user_count,
+                    assistant_message_count=assistant_count,
+                    tools_used=dict(tools),
+                    user_prompts=prompts,
+                )
+
+            # Handle as list or single object
+            elif isinstance(data, list):
+                messages = data
+            else:
+                messages = [data]
         else:
+            # JSONL format
             with open(session_file) as f:
                 messages = [json.loads(line) for line in f if line.strip()]
 
         if not messages:
             return None
 
-        # Find session metadata from first message
+        # Find session metadata from first message (new JSONL format)
         first_msg = messages[0]
         session_id = None
         cwd = None

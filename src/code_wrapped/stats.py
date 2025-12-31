@@ -97,6 +97,7 @@ class WrappedStats:
                 "total_duration_hours": round(self.total_duration_minutes / 60, 1),
                 "active_days": self.active_days,
                 "longest_streak_days": self.longest_streak_days,
+                "current_streak_days": self.current_streak_days,
             },
             "agents": {
                 agent.value: {
@@ -135,29 +136,41 @@ class WrappedStats:
 def compute_streaks(daily_sessions: dict[str, int]) -> tuple[int, int, int]:
     """Compute streak statistics from daily session counts.
 
+    Correctly handles gaps between active days.
+
     Returns:
         (longest_streak, current_streak, active_days)
     """
     if not daily_sessions:
         return 0, 0, 0
 
-    sorted_dates = sorted(daily_sessions.keys())
-    active_days = len([d for d, count in daily_sessions.items() if count > 0])
+    from datetime import datetime, timedelta
 
-    longest_streak = 0
-    current_streak = 0
-    temp_streak = 0
+    # Get all dates with sessions
+    active_dates = sorted([d for d, count in daily_sessions.items() if count > 0])
+    active_days = len(active_dates)
 
-    for i, date_str in enumerate(sorted_dates):
-        if daily_sessions[date_str] > 0:
+    if not active_dates:
+        return 0, 0, 0
+
+    # Parse dates
+    date_objects = [datetime.strptime(d, "%Y-%m-%d").date() for d in active_dates]
+
+    # Compute longest streak by checking consecutive days
+    longest_streak = 1
+    temp_streak = 1
+
+    for i in range(1, len(date_objects)):
+        if (date_objects[i] - date_objects[i - 1]).days == 1:
             temp_streak += 1
             longest_streak = max(longest_streak, temp_streak)
         else:
-            temp_streak = 0
+            temp_streak = 1
 
-    # Current streak (from most recent day backwards)
-    for date_str in reversed(sorted_dates):
-        if daily_sessions[date_str] > 0:
+    # Current streak (from most recent active day backwards)
+    current_streak = 1
+    for i in range(len(date_objects) - 1, 0, -1):
+        if (date_objects[i] - date_objects[i - 1]).days == 1:
             current_streak += 1
         else:
             break

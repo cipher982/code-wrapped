@@ -1,0 +1,14 @@
+{
+  "session": {
+    "timestamp": "2025-06-15T15:00:00.000Z",
+    "id": "codex-test-session-1",
+    "cwd": "/Users/test/git/another-project",
+    "instructions": ""
+  },
+  "items": [
+    {"role": "user", "content": [{"type": "input_text", "text": "Add a feature"}]},
+    {"role": "assistant", "content": [{"type": "output_text", "text": "I'll add that"}]},
+    {"type": "function_call", "name": "shell", "arguments": "{}"},
+    {"role": "user", "content": [{"type": "input_text", "text": "Thanks"}]}
+  ]
+}

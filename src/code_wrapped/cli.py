@@ -137,7 +137,7 @@ def run(year: int, output: str | None, verbose: bool):
     sessions = collect_all_sessions(year, verbose=verbose)
 
     if not sessions:
-        console.print("[yellow]No sessions found for {year}.[/yellow]")
+        console.print(f"[yellow]No sessions found for {year}.[/yellow]")
         return
 
     console.print(f"\n[green]Found {len(sessions)} total sessions![/green]\n")
