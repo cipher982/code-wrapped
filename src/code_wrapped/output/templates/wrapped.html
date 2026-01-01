@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Wrapped {{ year }} - Your AI Coding Year in Review</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.4em;
+            opacity: 0.9;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.6em;
+            margin: 30px 0 15px 0;
+            color: #555;
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            min-height: 400px;
+        }
+
+        .enrichment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .enrichment-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .enrichment-card h4 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .enrichment-card .emoji {
+            font-size: 2em;
+            margin-right: 10px;
+        }
+
+        .enrichment-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .enrichment-card .description {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .awards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .award-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .award-emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .award-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .award-detail {
+            font-size: 0.95em;
+            opacity: 0.95;
+        }
+
+        .agent-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .agent-table th,
+        .agent-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .agent-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .agent-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .narrative-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .narrative-section h2 {
+            color: white;
+            border-bottom: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .narrative-block {
+            margin: 25px 0;
+        }
+
+        .narrative-block h3 {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        .narrative-block p {
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.95);
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-top: 50px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .stat-value {
+                font-size: 2em;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎉 Code Wrapped {{ year }}</h1>
+        <p class="subtitle">Your AI Coding Year in Review</p>
+        <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">Generated on {{ generated_at }}</p>
+    </header>
+
+    <div class="container">
+        <!-- Hero Stats -->
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ "{:,}".format(summary.total_sessions) }}</div>
+                <div class="stat-label">Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ "{:,}".format(summary.total_turns) }}</div>
+                <div class="stat-label">Conversation Turns</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ "{:,.0f}".format(summary.total_duration_hours) }}</div>
+                <div class="stat-label">Hours Coding</div>
+            </div>
+            {% if summary.total_tokens > 0 %}
+            <div class="stat-card">
+                <div class="stat-value">
+                    {% if summary.total_tokens >= 1000000000 %}
+                        {{ "{:.1f}B".format(summary.total_tokens / 1000000000) }}
+                    {% elif summary.total_tokens >= 1000000 %}
+                        {{ "{:.0f}M".format(summary.total_tokens / 1000000) }}
+                    {% else %}
+                        {{ "{:,.0f}K".format(summary.total_tokens / 1000) }}
+                    {% endif %}
+                </div>
+                <div class="stat-label">Tokens</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Narrative (if available) -->
+        {% if narrative %}
+        <div class="narrative-section">
+            <h2>✨ Your Coding Story</h2>
+
+            <div class="narrative-block">
+                <h3>The Headline</h3>
+                <p>{{ narrative.headline }}</p>
+            </div>
+
+            <div class="narrative-block">
+                <h3>Your Year</h3>
+                <p>{{ narrative.year_summary }}</p>
+            </div>
+
+            <div class="narrative-block">
+                <h3>Your Vibe</h3>
+                <p>{{ narrative.vibe_description }}</p>
+            </div>
+
+            <div class="narrative-block">
+                <h3>Surprising Insight</h3>
+                <p>{{ narrative.surprising_insight }}</p>
+            </div>
+
+            <div class="narrative-block">
+                <h3>Epic Moment</h3>
+                <p>{{ narrative.epic_moment }}</p>
+            </div>
+
+            <div class="narrative-block">
+                <h3>Looking Ahead</h3>
+                <p>{{ narrative.personal_note }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Agent Breakdown -->
+        <div class="section">
+            <h2>🤖 Your AI Partners</h2>
+            <table class="agent-table">
+                <thead>
+                    <tr>
+                        <th>Agent</th>
+                        <th>Sessions</th>
+                        <th>Turns</th>
+                        <th>Avg Turns/Session</th>
+                        <th>Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agent_name, agent_data in agents.items() %}
+                    {% if agent_data.sessions > 0 %}
+                    <tr>
+                        <td class="agent-name">{{ agent_name.title() }}</td>
+                        <td>{{ "{:,}".format(agent_data.sessions) }}</td>
+                        <td>{{ "{:,}".format(agent_data.turns) }}</td>
+                        <td>{{ "{:.0f}".format(agent_data.avg_turns_per_session) }}</td>
+                        <td>{{ "{:.0f}".format(agent_data.avg_duration_minutes / 60) }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Agent comparison chart -->
+            <div id="chart-agents" class="chart-container"></div>
+        </div>
+
+        <!-- Enrichment Data -->
+        {% if enrichment %}
+        <div class="section">
+            <h2>🎯 Your Coding DNA</h2>
+
+            <div class="enrichment-grid">
+                <!-- Vibe -->
+                {% if enrichment.vibe %}
+                <div class="enrichment-card">
+                    <h4><span class="emoji">{{ enrichment.vibe.emoji }}</span> Your Vibe</h4>
+                    <div class="value">{{ enrichment.vibe.name }}</div>
+                    <div class="description">{{ enrichment.vibe.percentage }}% of your sessions</div>
+                </div>
+                {% endif %}
+
+                <!-- Archetype -->
+                {% if enrichment.archetype %}
+                <div class="enrichment-card">
+                    <h4><span class="emoji">{{ enrichment.archetype.primary.emoji }}</span> Your Archetype</h4>
+                    <div class="value">{{ enrichment.archetype.primary.name }}</div>
+                    <div class="description">{{ enrichment.archetype.primary.description }}</div>
+                </div>
+                {% endif %}
+
+                <!-- Fingerprint -->
+                {% if enrichment.fingerprint %}
+                <div class="enrichment-card">
+                    <h4>🛠️ Your Personality</h4>
+                    <div class="value">{{ enrichment.fingerprint.personality }}</div>
+                    <div class="description">{{ enrichment.fingerprint.description }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Topics -->
+            {% if enrichment.topics %}
+            <h3>📚 Your Top Topics</h3>
+            <div id="chart-topics" class="chart-container"></div>
+            {% endif %}
+
+            <!-- Tool fingerprint -->
+            {% if enrichment.fingerprint %}
+            <h3>🔧 Your Tool Usage</h3>
+            <div id="chart-tools" class="chart-container"></div>
+            {% endif %}
+        </div>
+
+        <!-- Awards -->
+        {% if enrichment and enrichment.awards %}
+        <div class="section">
+            <h2>🏆 Your Awards</h2>
+            <div class="awards-grid">
+                {% for award in enrichment.awards %}
+                <div class="award-card">
+                    <div class="award-emoji">{{ award.emoji }}</div>
+                    <div class="award-name">{{ award.name }}</div>
+                    <div class="award-detail">{{ award.detail }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Activity Patterns -->
+        <div class="section">
+            <h2>📊 Your Activity Patterns</h2>
+
+            <h3>Activity Heatmap</h3>
+            <div id="chart-heatmap" class="chart-container"></div>
+
+            <h3>Sessions by Hour</h3>
+            <div id="chart-hourly" class="chart-container"></div>
+        </div>
+
+        <!-- Repositories -->
+        {% if distributions.by_repo %}
+        <div class="section">
+            <h2>📁 Your Top Repositories</h2>
+            <div id="chart-repos" class="chart-container"></div>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer>
+        <p>Generated with <a href="https://github.com/yourusername/code-wrapped" target="_blank">code-wrapped</a></p>
+        <p style="margin-top: 10px; opacity: 0.8;">Your AI Coding Year in Review</p>
+    </footer>
+
+    <!-- Chart rendering -->
+    <script>
+        // Embed chart data
+        const charts = {{ charts_json | safe }};
+
+        // Render each chart
+        Object.keys(charts).forEach(chartName => {
+            const elementId = 'chart-' + chartName;
+            const element = document.getElementById(elementId);
+            if (element && charts[chartName]) {
+                Plotly.newPlot(elementId, charts[chartName].data, charts[chartName].layout, {
+                    responsive: true,
+                    displayModeBar: false
+                });
+            }
+        });
+    </script>
+</body>
+</html>
