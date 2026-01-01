@@ -12,6 +12,7 @@ dependencies = [
     "pillow>=10.0",
     "plotly>=5.15",
     "kaleido>=0.2",  # For plotly image export
+    "numpy>=1.24",   # Required by plotly
 ]
 
 [project.optional-dependencies]
