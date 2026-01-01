@@ -29,6 +29,7 @@ from .enrichment import (
     get_peak_hour_award,
     get_top_topics,
 )
+from .narrative import compile_narrative_context, generate_insights
 
 console = Console()
 
@@ -59,6 +60,57 @@ def collect_all_sessions(year: int, verbose: bool = False) -> list[Session]:
                 console.print(f"  [dim]{name}: {len(agent_sessions)} sessions[/dim]")
 
     return sessions
+
+
+def print_narrative(stats: WrappedStats, awards: list) -> None:
+    """Print LLM-generated narrative if available."""
+    from .narrative import Insights
+
+    # Compile context
+    context = compile_narrative_context(stats, awards)
+
+    console.print()
+    console.print("[bold cyan]Generating your personalized narrative...[/bold cyan]")
+    console.print()
+
+    # Generate insights
+    insights = generate_insights(context)
+
+    if not insights:
+        console.print(
+            "[yellow]Narrative generation unavailable (ANTHROPIC_API_KEY not set)[/yellow]"
+        )
+        return
+
+    # Print narrative sections
+    console.print(
+        Panel.fit(
+            f"[bold white]{insights.headline}[/bold white]",
+            border_style="magenta",
+            title="Your Year in Code",
+        )
+    )
+    console.print()
+
+    console.print("[bold]Your Year Summary:[/bold]")
+    console.print(f"[white]{insights.year_summary}[/white]")
+    console.print()
+
+    console.print("[bold]Your Coding Vibe:[/bold]")
+    console.print(f"[white]{insights.vibe_description}[/white]")
+    console.print()
+
+    console.print("[bold]Surprising Insight:[/bold]")
+    console.print(f"[cyan]{insights.surprising_insight}[/cyan]")
+    console.print()
+
+    console.print("[bold]Epic Moment:[/bold]")
+    console.print(f"[green]{insights.epic_moment}[/green]")
+    console.print()
+
+    console.print("[bold]Looking Ahead:[/bold]")
+    console.print(f"[white]{insights.personal_note}[/white]")
+    console.print()
 
 
 def print_summary(stats: WrappedStats) -> None:
@@ -201,7 +253,13 @@ def main():
 @click.option("--year", "-y", default=datetime.now().year, help="Year to analyze")
 @click.option("--output", "-o", type=click.Path(), help="Output JSON file path")
 @click.option("--verbose", "-v", is_flag=True, help="Show verbose output")
-def run(year: int, output: str | None, verbose: bool):
+@click.option(
+    "--narrate",
+    "-n",
+    is_flag=True,
+    help="Generate LLM-powered narrative (requires ANTHROPIC_API_KEY)",
+)
+def run(year: int, output: str | None, verbose: bool, narrate: bool):
     """Generate your Code Wrapped stats."""
     console.print(f"\n[bold]Generating Code Wrapped for {year}...[/bold]\n")
 
@@ -216,6 +274,19 @@ def run(year: int, output: str | None, verbose: bool):
 
     # Compute stats
     stats = aggregate_stats(sessions, year)
+
+    # Collect awards for narrative context
+    awards = detect_awards(stats)
+    active_day_award = get_most_active_day_award(stats)
+    if active_day_award:
+        awards.append(active_day_award)
+    peak_hour_award = get_peak_hour_award(stats)
+    if peak_hour_award:
+        awards.append(peak_hour_award)
+
+    # Print narrative if requested
+    if narrate:
+        print_narrative(stats, awards)
 
     # Print summary
     print_summary(stats)
