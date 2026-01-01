@@ -66,9 +66,9 @@ def extract_errors(messages: list[dict]) -> list[str]:
                             if error_content and len(error_content) < 500:
                                 errors.append(error_content[:200])
 
-        # Check toolUseResult for errors
-        tool_result = msg.get("toolUseResult", {})
-        if tool_result.get("stderr"):
+        # Check toolUseResult for errors (can be dict or string)
+        tool_result = msg.get("toolUseResult")
+        if isinstance(tool_result, dict) and tool_result.get("stderr"):
             stderr = tool_result["stderr"]
             if len(stderr) < 500:
                 errors.append(stderr[:200])
