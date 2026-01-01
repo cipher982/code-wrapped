@@ -384,16 +384,23 @@ PROMPT_ARCHETYPES = {
 
 ---
 
-### Phase 4: Visual Generation (The Wow Factor)
+### Phase 4: Visual Generation (The Wow Factor) ✅ COMPLETE
+
+**Status:** Implemented December 31, 2025
 
 **Goal:** Create shareable, beautiful visuals.
 
-#### 4.1 Static Visualizations
-- **Hero Card:** Summary stats in branded design
-- **Heatmap:** Your coding year calendar (GitHub-style but richer)
-- **Radar Chart:** Skills/topics pentagon
-- **Timeline:** Your coding journey milestones
-- **Bar Race:** Monthly topic evolution (animated)
+#### 4.1 Static Visualizations ✅
+- ✅ **Hero Card:** Summary stats in branded design (1200x630 PNG)
+- ✅ **Heatmap:** Your coding year calendar (day of week x hour)
+- ✅ **Tool Usage:** Horizontal bar chart of top tools
+- ✅ **Agent Comparison:** Donut chart + card showing usage split
+- ✅ **Topic Distribution:** Bar chart of top coding topics
+- ✅ **Repo Activity:** Bar chart of most active repositories
+- ✅ **Award Cards:** Individual PNG cards for each award
+- ⏸️ **Radar Chart:** Skills/topics pentagon (deferred to Phase 6)
+- ⏸️ **Timeline:** Your coding journey milestones (deferred to Phase 6)
+- ⏸️ **Bar Race:** Monthly topic evolution animated (deferred to Phase 6)
 
 #### 4.2 AI-Generated Art
 ```python
@@ -449,11 +456,91 @@ You were co-creating with AI."
 [Twitter] [LinkedIn] [Download]
 ```
 
-**Acceptance Criteria:**
-- Story mode with 6-8 slides
-- Animations/transitions
-- Shareable images for each slide
-- AI-generated hero art
+**Acceptance Criteria:** ✅ COMPLETE (Static visualizations)
+- ✅ HTML report generated at data/output/wrapped-{year}.html
+- ✅ At least 3 PNG cards generated in data/output/cards/
+- ✅ Charts render correctly with real data
+- ✅ Works without errors when run on actual session data
+- ✅ Tests with fixture data (10 tests passing)
+
+**Not Yet Implemented (Future Phases):**
+- ⏸️ Story mode with 6-8 slides (Phase 6)
+- ⏸️ Animations/transitions (Phase 6)
+- ⏸️ AI-generated hero art (Phase 6)
+
+**Implementation Summary:**
+
+**What Was Built:**
+- `viz/charts.py`: Plotly chart generation
+  - Activity heatmap (day of week x hour matrix)
+  - Hourly distribution bar chart
+  - Tool usage horizontal bars
+  - Agent comparison donut chart
+  - Topic distribution chart
+  - Repository activity chart
+  - PNG export via kaleido
+- `viz/cards.py`: PNG card generation using Pillow
+  - Hero stats card (1200x630 Twitter/OG format)
+  - Tool fingerprint card with personality
+  - Agent comparison card with usage bars
+  - Award card generator
+  - generate_all_cards() orchestrator
+- `output/templates/wrapped.html`: Jinja2 HTML template
+  - Responsive single-page design
+  - Embedded interactive Plotly charts
+  - Hero stats grid
+  - Agent breakdown table
+  - Enrichment cards (vibe, archetype, fingerprint)
+  - Awards display grid
+  - Narrative section (if --narrate used)
+  - Beautiful gradient styling
+- `output/report.py`: Report orchestration
+  - generate_html_report() - Renders template
+  - generate_full_report() - Orchestrates all outputs
+  - load_wrapped_json() - Loads from existing JSON
+  - Creates privacy-safe share JSON
+- CLI integration:
+  - `code-wrapped run --year 2025` generates HTML + PNG cards by default
+  - `--no-report` flag to skip visual generation
+  - Error handling with graceful fallback
+
+**Output Structure:**
+```
+data/output/
+├── wrapped-2025.json              # Full stats (private)
+├── wrapped-2025.html              # Single-page report
+├── wrapped-2025-share.json        # Privacy-safe subset
+└── cards/
+    ├── hero-stats.png             # Main numbers card
+    ├── tool-fingerprint.png       # Your tool DNA (if available)
+    ├── agent-comparison.png       # Claude vs Codex vs ...
+    └── award-{id}.png             # Per-award cards
+```
+
+**Chart Types Implemented:**
+1. Activity heatmap - day of week vs hour
+2. Hourly distribution - sessions per hour bar chart
+3. Tool usage - horizontal bars with top tools
+4. Agent comparison - donut chart with brand colors
+5. Topic distribution - horizontal bars (if topics detected)
+6. Repository activity - horizontal bars (if repos available)
+
+**Card Types Implemented:**
+1. Hero stats - big numbers with tokens formatted (1.2B, 450M, etc)
+2. Tool fingerprint - personality + top 5 tools with bars
+3. Agent comparison - usage bars with percentages
+4. Award cards - emoji + name + detail (up to 3 awards)
+
+**Dependencies Added:**
+- numpy>=1.24 (required by plotly, moved to core deps)
+
+**Tests:**
+- 10 comprehensive tests in tests/test_viz.py
+- Tests for all chart types
+- Tests for all card types
+- Tests for HTML generation
+- Tests for full report orchestration
+- All 111 tests passing (including previous phases)
 
 ---
 
