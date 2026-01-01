@@ -251,7 +251,7 @@ def main():
 
 @main.command()
 @click.option("--year", "-y", default=datetime.now().year, help="Year to analyze")
-@click.option("--output", "-o", type=click.Path(), help="Output JSON file path")
+@click.option("--output", "-o", type=click.Path(), help="Output directory path")
 @click.option("--verbose", "-v", is_flag=True, help="Show verbose output")
 @click.option(
     "--narrate",
@@ -259,7 +259,12 @@ def main():
     is_flag=True,
     help="Generate LLM-powered narrative (requires ANTHROPIC_API_KEY)",
 )
-def run(year: int, output: str | None, verbose: bool, narrate: bool):
+@click.option(
+    "--no-report",
+    is_flag=True,
+    help="Skip generating HTML report and PNG cards",
+)
+def run(year: int, output: str | None, verbose: bool, narrate: bool, no_report: bool):
     """Generate your Code Wrapped stats."""
     console.print(f"\n[bold]Generating Code Wrapped for {year}...[/bold]\n")
 
@@ -284,25 +289,64 @@ def run(year: int, output: str | None, verbose: bool, narrate: bool):
     if peak_hour_award:
         awards.append(peak_hour_award)
 
-    # Print narrative if requested
+    # Generate narrative if requested
+    narrative_dict = None
     if narrate:
         print_narrative(stats, awards)
+        # Also capture for HTML report
+        context = compile_narrative_context(stats, awards)
+        insights = generate_insights(context)
+        if insights:
+            narrative_dict = {
+                'headline': insights.headline,
+                'year_summary': insights.year_summary,
+                'vibe_description': insights.vibe_description,
+                'surprising_insight': insights.surprising_insight,
+                'epic_moment': insights.epic_moment,
+                'personal_note': insights.personal_note,
+            }
 
     # Print summary
     print_summary(stats)
 
-    # Save output
+    # Determine output directory
     if output:
-        output_path = Path(output)
+        output_dir = Path(output)
     else:
-        output_path = Path(f"data/output/wrapped-{year}.json")
+        output_dir = Path("data/output")
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, "w") as f:
+    # Save JSON stats
+    json_path = output_dir / f"wrapped-{year}.json"
+    with open(json_path, "w") as f:
         json.dump(stats.to_dict(), f, indent=2)
 
-    console.print(f"[dim]Stats saved to: {output_path}[/dim]")
+    console.print(f"\n[dim]Stats saved to: {json_path}[/dim]")
+
+    # Generate HTML report and cards
+    if not no_report:
+        console.print("\n[bold cyan]Generating visual report...[/bold cyan]")
+        from .output.report import generate_full_report
+
+        try:
+            outputs = generate_full_report(
+                stats,
+                output_dir,
+                generate_cards=True,
+                narrative=narrative_dict,
+            )
+
+            console.print(f"[green]✓[/green] HTML report: {outputs['html']}")
+            if 'cards' in outputs:
+                console.print(f"[green]✓[/green] Generated {len(outputs['cards'])} PNG cards in {output_dir / 'cards'}")
+            console.print(f"[green]✓[/green] Share JSON: {outputs['share_json']}")
+
+        except Exception as e:
+            console.print(f"[yellow]Warning: Could not generate visual report: {e}[/yellow]")
+            if verbose:
+                import traceback
+                console.print(f"[dim]{traceback.format_exc()}[/dim]")
 
 
 @main.command()
