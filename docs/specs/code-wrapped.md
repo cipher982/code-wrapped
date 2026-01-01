@@ -274,7 +274,9 @@ You're a "Terminal Warrior" - command-line first, edit later.
 
 ---
 
-### Phase 3: Narrative Generation (Storytelling)
+### Phase 3: Narrative Generation (Storytelling) ✅ COMPLETE
+
+**Status:** Implemented December 31, 2025
 
 **Goal:** Turn stats into compelling human stories.
 
@@ -345,10 +347,40 @@ PROMPT_ARCHETYPES = {
 ```
 
 **Acceptance Criteria:**
-- LLM-generated narrative paragraphs
-- At least 5 auto-detected awards
-- Personalized based on actual outliers in data
-- Prompt archetype breakdown included
+- ✅ LLM-generated narrative paragraphs
+- ✅ At least 5 auto-detected awards (12 award types implemented)
+- ✅ Personalized based on actual outliers in data
+- ✅ Prompt archetype breakdown included (implemented in Phase 2)
+
+**Implementation Summary:**
+
+**What Was Built:**
+- `narrative/story.py`: Compiles `NarrativeContext` from stats, awards, and enrichment
+- `narrative/insights.py`: LLM-powered narrative generation via Anthropic API
+  - Generates 6 narrative sections: headline, year summary, vibe description, surprising insight, epic moment, personal note
+  - Graceful fallback when ANTHROPIC_API_KEY not available
+  - Graceful fallback when anthropic package not installed
+- CLI integration: `--narrate/-n` flag enables narrative mode
+- `print_narrative()` displays formatted LLM insights before stats summary
+- Comprehensive test suite: 13 tests with mocked API responses
+
+**LLM Prompt Design:**
+- System prompt sets "Spotify Wrapped" tone: playful, personal, celebratory
+- Context string includes all key stats and patterns
+- Structured output format ensures consistent parsing
+- Temperature=0.8 for creative variation
+
+**Graceful Degradation:**
+1. No API key → Returns None, prints warning message
+2. Import error → Returns None (anthropic not installed)
+3. API error → Returns None, fails silently
+4. User can run without `--narrate` to see stats only
+
+**Not Yet Implemented (Future Phases):**
+- "Error of the Year" feature (requires error collection from tool_results)
+- "Command of the Year" (requires Bash command extraction)
+- "Agent Handoff Moments" (requires temporal analysis)
+- Award flavor text enhancement via LLM (optional function exists but not integrated)
 
 ---
 
