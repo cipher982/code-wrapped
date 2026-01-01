@@ -35,8 +35,8 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Project specific
-data/output/*.json
+# Project specific - all output is personal data
+data/output/
 data/raw/
 data/enriched/
 
