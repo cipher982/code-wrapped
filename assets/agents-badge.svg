@@ -1,0 +1,70 @@
+<svg width="400" height="80" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.1" />
+      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.1" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Badge background -->
+  <rect width="400" height="80" rx="40" fill="url(#badgeGrad)"/>
+  <rect width="400" height="80" rx="40" fill="none" stroke="url(#textGrad)" stroke-width="2"/>
+
+  <!-- Label section -->
+  <rect width="140" height="80" rx="40" fill="#1e293b"/>
+  <text x="70" y="47" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#94a3b8" text-anchor="middle">
+    Supports
+  </text>
+
+  <!-- Agent icons/text -->
+  <!-- Claude -->
+  <g transform="translate(170, 25)">
+    <circle cx="15" cy="15" r="14" fill="#1e293b" stroke="#06b6d4" stroke-width="2"/>
+    <text x="15" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#06b6d4" text-anchor="middle">
+      C
+    </text>
+  </g>
+
+  <!-- Codex -->
+  <g transform="translate(225, 25)">
+    <circle cx="15" cy="15" r="14" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+    <text x="15" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#10b981" text-anchor="middle">
+      X
+    </text>
+  </g>
+
+  <!-- Cursor -->
+  <g transform="translate(280, 25)">
+    <circle cx="15" cy="15" r="14" fill="#1e293b" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="15" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#8b5cf6" text-anchor="middle">
+      ↗
+    </text>
+  </g>
+
+  <!-- Gemini -->
+  <g transform="translate(335, 25)">
+    <circle cx="15" cy="15" r="14" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+    <text x="15" y="21" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#f59e0b" text-anchor="middle">
+      G
+    </text>
+  </g>
+
+  <!-- Agent names below icons (subtle) -->
+  <text x="185" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#64748b" text-anchor="middle">
+    Claude
+  </text>
+  <text x="240" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#64748b" text-anchor="middle">
+    Codex
+  </text>
+  <text x="295" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#64748b" text-anchor="middle">
+    Cursor
+  </text>
+  <text x="350" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#64748b" text-anchor="middle">
+    Gemini
+  </text>
+</svg>
